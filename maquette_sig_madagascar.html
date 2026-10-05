@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SIG Madagascar – Ressources</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<style>
+:root{--ink:#202124;--muted:#5f6368;--line:#dadce0;--blue:#1a73e8}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;overflow:hidden;font-family:Roboto,"Segoe UI",Arial,sans-serif;color:var(--ink)}
+#app{display:flex;height:100%}
+#nav{width:200px;flex:none;background:#fff;border-right:1px solid var(--line);display:flex;flex-direction:column;padding:12px 8px}
+#nav h1{font-size:16px;margin:4px 10px 14px;font-weight:600}
+#nav button{display:flex;align-items:center;gap:10px;width:100%;font:inherit;font-size:14px;text-align:left;border:0;background:none;padding:9px 10px;border-radius:8px;cursor:pointer;color:var(--ink)}
+#nav button:hover{background:#f1f3f4}
+#nav button.on{background:#e8f0fe;color:var(--blue);font-weight:500}
+#nav button .soon{margin-left:auto;font-size:10px;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:0 6px}
+#nav .sep{margin:10px 10px 4px;font-size:11px;color:var(--muted)}
+#main{flex:1;position:relative;min-width:0;background:#f8f9fa}
+.view{position:absolute;inset:0;display:none;overflow:auto}
+.view.on{display:block}
+#view-carte{overflow:hidden}
+#map{position:absolute;inset:0}
+.dash{padding:20px 24px;max-width:1100px}
+.dash h2{margin:0 0 14px;font-size:20px;font-weight:500}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px 16px}
+.kpi b{display:block;font-size:26px;font-weight:500}
+.kpi span{font-size:13px;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.box{background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+.box h3{margin:0 0 10px;font-size:14px;font-weight:500}
+.bar{display:flex;align-items:center;gap:8px;margin:7px 0;font-size:13px}
+.bar .nm{width:110px}
+.bar .tr{flex:1;background:#f1f3f4;border-radius:4px;height:14px}
+.bar .fl{height:14px;border-radius:4px}
+.bar .v{width:20px;text-align:right;color:var(--muted)}
+.box table{width:100%;border-collapse:collapse;font-size:13px}
+.box td,.box th{padding:7px 4px;border-top:1px solid #f1f3f4;text-align:left;font-weight:normal}
+.box th{color:var(--muted);border-top:0}
+.box tr.go{cursor:pointer}.box tr.go:hover{background:#f8f9fa}
+.soonbox{padding:40px 24px;color:var(--muted);font-size:15px;line-height:1.6}
+@media(max-width:900px){#nav{width:56px}#nav h1,#nav .lb,#nav .soon,#nav .sep{display:none}.kpis{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}}
+.card{position:absolute;z-index:1000;background:#fff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+#panel{top:12px;left:12px;width:320px;max-height:calc(100% - 24px);overflow:auto}
+#search{display:flex;align-items:center;padding:4px 12px;border-bottom:1px solid var(--line)}
+#search input{flex:1;border:0;outline:0;font-size:15px;padding:10px 4px}
+#hits{display:none;border-bottom:1px solid var(--line)}
+#hits div{padding:8px 16px;font-size:14px;cursor:pointer}
+#hits div:hover{background:#f1f3f4}
+.sec{padding:12px 16px;border-bottom:1px solid var(--line)}
+.sec h2{margin:0 0 8px;font-size:12px;color:var(--muted);font-weight:500}
+.types{display:flex;gap:6px;flex-wrap:wrap}
+.types button{font:inherit;font-size:13px;padding:5px 12px;border:1px solid var(--line);background:#fff;border-radius:16px;cursor:pointer}
+.types button.on{background:#e8f0fe;border-color:var(--blue);color:var(--blue)}
+.res label{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:14px;cursor:pointer}
+.chip{width:14px;height:14px;border-radius:50%;flex:none}
+.res .n{margin-left:auto;color:var(--muted);font-size:12px}
+.opt{display:flex;gap:8px;font-size:14px;padding:3px 0}
+#layers{top:12px;right:12px;display:flex;overflow:hidden}
+#layers button{font:inherit;font-size:13px;border:0;background:#fff;padding:8px 14px;cursor:pointer}
+#layers button.on{background:#e8f0fe;color:var(--blue)}
+#detail{left:352px;bottom:24px;width:300px;padding:14px 16px;display:none}
+#detail h3{margin:0 0 2px;font-size:18px;font-weight:500}
+#detail .sub{color:var(--muted);font-size:13px;margin-bottom:10px}
+#detail table{width:100%;font-size:14px;border-collapse:collapse}
+#detail td{padding:5px 0;border-top:1px solid #f1f3f4}
+#detail td:last-child{text-align:right}
+.rlabel{background:none;border:0;box-shadow:none;font-size:11px;font-weight:600;color:#3c4043;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff;padding:0}
+.rlabel:before{display:none}
+.note{font-size:11px;color:var(--muted);padding:10px 16px}
+@media(max-width:760px){#panel{width:calc(100% - 24px);max-height:45%}#detail{left:12px;bottom:12px}}
+</style>
+</head>
+<body>
+<div id="app">
+<nav id="nav"></nav>
+<div id="main">
+<div class="view on" id="view-dashboard"><div class="dash" id="dash"></div></div>
+<div class="view" id="view-carte">
+<div id="map"></div>
+
+<div class="card" id="panel">
+  <div id="search"><span>🔍</span><input id="q" placeholder="Rechercher une région, un site…" autocomplete="off"></div>
+  <div id="hits"></div>
+  <div class="sec"><h2>Type de ressource</h2><div class="types" id="types"></div></div>
+  <div class="sec"><h2>Ressources</h2><div class="res" id="res"></div></div>
+  <div class="sec"><h2>Affichage</h2><label class="opt"><input type="checkbox" id="showReg" checked> Noms des régions</label></div>
+  <div class="note">Maquette : données fictives. Les limites des régions viendront de PostGIS.</div>
+</div>
+
+<div class="card" id="layers"><button class="on" data-l="plan">Plan</button><button data-l="sat">Satellite</button></div>
+<div class="card" id="detail"></div>
+</div>
+<div class="view" id="view-soon"><div class="soonbox" id="soon"></div></div>
+</div></div>
+
+<script>
+const TYPES={minier:"Minier",agricole:"Agricole",energie:"Énergie"};
+const RES=[
+ {id:"or",type:"minier",nom:"Or",c:"#d9a400"},
+ {id:"argent",type:"minier",nom:"Argent",c:"#78909c"},
+ {id:"saphir",type:"minier",nom:"Saphir",c:"#2f5fc4"},
+ {id:"nickel",type:"minier",nom:"Nickel",c:"#2e9e6b"},
+ {id:"graphite",type:"minier",nom:"Graphite",c:"#424242"},
+ {id:"vanille",type:"agricole",nom:"Vanille",c:"#e65100"},
+ {id:"girofle",type:"agricole",nom:"Girofle",c:"#8e24aa"},
+ {id:"hydro",type:"energie",nom:"Hydroélectricité",c:"#00acc1"}
+];
+const SITES=[
+ {nom:"Betsiaka",r:"or",lat:-13.3,lon:48.9,reg:"Diana",t:"120 kg/an",p:"58 000 €/kg"},
+ {nom:"Ilakaka",r:"saphir",lat:-22.7,lon:45.2,reg:"Ihorombe",t:"—",p:"selon carat"},
+ {nom:"Ambatovy",r:"nickel",lat:-18.85,lon:48.3,reg:"Alaotra-Mangoro",t:"40 000 t/an",p:"15 000 $/t"},
+ {nom:"Moramanga",r:"graphite",lat:-18.95,lon:48.2,reg:"Alaotra-Mangoro",t:"3 000 t/an",p:"700 $/t"},
+ {nom:"Zone nord-ouest",r:"argent",lat:-15.9,lon:46.8,reg:"Boeny",t:"à définir",p:"à définir"},
+ {nom:"Sambava",r:"vanille",lat:-14.27,lon:50.0,reg:"Sava",t:"1 200 t/an",p:"250 $/kg"},
+ {nom:"Antalaha",r:"vanille",lat:-14.9,lon:50.25,reg:"Sava",t:"900 t/an",p:"250 $/kg"},
+ {nom:"Fénérive-Est",r:"girofle",lat:-17.4,lon:49.4,reg:"Analanjirofo",t:"15 000 t/an",p:"9 $/kg"},
+ {nom:"Andekaleka",r:"hydro",lat:-18.7,lon:48.5,reg:"Atsinanana",t:"58 MW",p:"—"}
+];
+// 23 régions – centre approximatif (les vraies limites viendront de PostGIS)
+const REGIONS=[
+["Diana",-13.3,49.2],["Sava",-14.4,49.9],["Sofia",-15.3,48.3],["Boeny",-16.3,46.4],["Betsiboka",-16.9,46.9],
+["Melaky",-17.7,44.7],["Analanjirofo",-16.8,49.5],["Alaotra-Mangoro",-18.3,48.4],["Atsinanana",-18.9,49.1],
+["Analamanga",-18.9,47.5],["Itasy",-19.0,46.8],["Bongolava",-17.6,46.7],["Vakinankaratra",-19.8,46.9],
+["Amoron'i Mania",-20.5,47.0],["Haute Matsiatra",-21.5,46.8],["Vatovavy",-21.4,48.0],["Fitovinany",-22.3,47.6],
+["Ihorombe",-22.3,45.3],["Atsimo-Atsinanana",-23.4,47.4],["Menabe",-20.5,44.7],["Atsimo-Andrefana",-23.5,44.0],
+["Androy",-24.8,45.5],["Anosy",-24.5,46.6]];
+
+const map=L.map("map",{zoomControl:false}).setView([-19.4,46.7],6);
+L.control.zoom({position:"bottomright"}).addTo(map);
+const plan=L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap"});
+const sat=L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{attribution:"Esri"});
+plan.addTo(map);
+document.querySelectorAll("#layers button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("#layers button").forEach(x=>x.classList.toggle("on",x===b));
+  if(b.dataset.l==="sat"){map.removeLayer(plan);sat.addTo(map)}else{map.removeLayer(sat);plan.addTo(map)}
+});
+
+const regLayer=L.layerGroup().addTo(map), siteLayer=L.layerGroup().addTo(map);
+REGIONS.forEach(([n,la,lo])=>L.marker([la,lo],{opacity:0}).bindTooltip(n,{permanent:true,direction:"center",className:"rlabel"}).addTo(regLayer));
+document.getElementById("showReg").onchange=e=>e.target.checked?regLayer.addTo(map):map.removeLayer(regLayer);
+
+let type="minier", sel=new Set(["or","saphir"]);
+const $=id=>document.getElementById(id), rc=id=>RES.find(r=>r.id===id);
+
+function drawTypes(){
+ $("types").innerHTML=Object.entries(TYPES).map(([k,v])=>`<button class="${k===type?'on':''}" data-t="${k}">${v}</button>`).join("");
+ $("types").querySelectorAll("button").forEach(b=>b.onclick=()=>{type=b.dataset.t;drawTypes();drawRes()});
+}
+function drawRes(){
+ $("res").innerHTML=RES.filter(r=>r.type===type).map(r=>{
+  const n=SITES.filter(s=>s.r===r.id).length;
+  return `<label><input type="checkbox" data-r="${r.id}" ${sel.has(r.id)?'checked':''}><span class="chip" style="background:${r.c}"></span>${r.nom}<span class="n">${n} site${n>1?'s':''}</span></label>`}).join("");
+ $("res").querySelectorAll("input").forEach(i=>i.onchange=()=>{i.checked?sel.add(i.dataset.r):sel.delete(i.dataset.r);drawSites()});
+}
+function drawSites(){
+ siteLayer.clearLayers();
+ SITES.filter(s=>sel.has(s.r)).forEach(s=>{
+  L.circleMarker([s.lat,s.lon],{radius:10,color:"#fff",weight:2,fillColor:rc(s.r).c,fillOpacity:1})
+   .on("click",()=>showDetail(s)).bindTooltip(s.nom).addTo(siteLayer);
+ });
+}
+function showDetail(s){
+ const r=rc(s.r), d=$("detail");
+ d.style.display="block";
+ d.innerHTML=`<h3>${s.nom}</h3><div class="sub"><span class="chip" style="background:${r.c};display:inline-block;vertical-align:middle"></span> ${r.nom} · ${TYPES[r.type]}</div>
+ <table><tr><td>Région</td><td>${s.reg}</td></tr><tr><td>Production</td><td>${s.t}</td></tr><tr><td>Prix</td><td>${s.p}</td></tr></table>`;
+}
+// recherche façon Google Maps
+$("q").oninput=e=>{
+ const v=e.target.value.trim().toLowerCase(), h=$("hits");
+ if(!v){h.style.display="none";return}
+ const items=[...REGIONS.map(r=>({n:r[0],k:"Région",la:r[1],lo:r[2],z:8})),...SITES.map(s=>({n:s.nom,k:rc(s.r).nom,la:s.lat,lo:s.lon,z:10,s}))].filter(i=>i.n.toLowerCase().includes(v)).slice(0,6);
+ h.style.display=items.length?"block":"none";
+ h.innerHTML=items.map((i,x)=>`<div data-x="${x}">${i.n} <small style="color:#5f6368">· ${i.k}</small></div>`).join("");
+ h.querySelectorAll("div").forEach((el,x)=>el.onclick=()=>{const i=items[x];map.flyTo([i.la,i.lo],i.z);if(i.s){sel.add(i.s.r);type=rc(i.s.r).type;drawTypes();drawRes();drawSites();showDetail(i.s)}h.style.display="none"});
+};
+drawTypes();drawRes();drawSites();
+
+/* ===== Application : modules (pour ajouter des fonctionnalités plus tard) ===== */
+const MODULES=[
+ {id:"dashboard",label:"Tableau de bord",icon:"📊",ready:true},
+ {id:"carte",label:"Carte",icon:"🗺️",ready:true},
+ {id:"routes",label:"État des routes",icon:"🛣️",desc:"Couleur par état de route (bon, moyen, mauvais, coupé) à partir de la table route."},
+ {id:"camions",label:"Suivi des camions",icon:"🚚",desc:"Position en temps réel de la flotte sur la carte."},
+ {id:"prix",label:"Prix et tonnages",icon:"💲",desc:"Évolution annuelle des prix et des quantités par ressource."}
+];
+let activeView="dashboard";
+function drawNav(){
+ $("nav").innerHTML="<h1>SIG Madagascar</h1>"+MODULES.map((m,i)=>(i===2?'<div class="sep">Prochainement</div>':'')+
+  `<button data-m="${m.id}" class="${m.id===activeView?'on':''}"><span>${m.icon}</span><span class="lb">${m.label}</span>${m.ready?'':'<span class="soon">bientôt</span>'}</button>`).join("");
+ $("nav").querySelectorAll("button").forEach(b=>b.onclick=()=>go(b.dataset.m));
+}
+function go(id){
+ activeView=id;
+ const m=MODULES.find(x=>x.id===id);
+ document.querySelectorAll(".view").forEach(v=>v.classList.remove("on"));
+ const target=m.ready?"view-"+id:"view-soon";
+ $(target).classList.add("on");
+ if(!m.ready)$("soon").innerHTML=`<h2 style="color:#202124;font-weight:500">${m.icon} ${m.label}</h2>${m.desc}<br>Ce module sera ajouté ici : il suffit de l'inscrire dans la liste MODULES.`;
+ if(id==="carte"){map.invalidateSize();setTimeout(()=>map.invalidateSize(),50)}
+ drawNav();
+}
+function drawDash(){
+ const nbRes=RES.length, nbSites=SITES.length, regs=new Set(SITES.map(s=>s.reg)).size;
+ const max=Math.max(...RES.map(r=>SITES.filter(s=>s.r===r.id).length),1);
+ const bars=RES.map(r=>{const n=SITES.filter(s=>s.r===r.id).length;
+  return `<div class="bar"><span class="nm">${r.nom}</span><span class="tr"><div class="fl" style="width:${n/max*100}%;background:${r.c}"></div></span><span class="v">${n}</span></div>`}).join("");
+ const byReg={};SITES.forEach(s=>byReg[s.reg]=(byReg[s.reg]||0)+1);
+ const regRows=Object.entries(byReg).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`<tr><td>${n}</td><td style="text-align:right">${c}</td></tr>`).join("");
+ const rows=SITES.map((s,i)=>`<tr class="go" data-i="${i}"><td>${s.nom}</td><td><span class="chip" style="background:${rc(s.r).c};display:inline-block;vertical-align:middle"></span> ${rc(s.r).nom}</td><td>${s.reg}</td><td>${s.t}</td></tr>`).join("");
+ $("dash").innerHTML=`<h2>Tableau de bord</h2>
+ <div class="kpis">
+  <div class="kpi"><b>${nbSites}</b><span>Sites référencés</span></div>
+  <div class="kpi"><b>${nbRes}</b><span>Ressources</span></div>
+  <div class="kpi"><b>${Object.keys(TYPES).length}</b><span>Types de ressources</span></div>
+  <div class="kpi"><b>${regs} / ${REGIONS.length}</b><span>Régions avec au moins un site</span></div>
+ </div>
+ <div class="grid2">
+  <div class="box"><h3>Sites par ressource</h3>${bars}</div>
+  <div class="box"><h3>Sites par région</h3><table><tr><th>Région</th><th style="text-align:right">Sites</th></tr>${regRows}</table></div>
+ </div>
+ <div class="box" style="margin-top:12px"><h3>Tous les sites</h3><table><tr><th>Site</th><th>Ressource</th><th>Région</th><th>Production</th></tr>${rows}</table></div>`;
+ $("dash").querySelectorAll("tr.go").forEach(tr=>tr.onclick=()=>{
+  const s=SITES[tr.dataset.i];sel.add(s.r);type=rc(s.r).type;drawTypes();drawRes();drawSites();
+  go("carte");map.setView([s.lat,s.lon],9);showDetail(s)});
+}
+drawDash();drawNav();
+</script>
+</body>
+</html>

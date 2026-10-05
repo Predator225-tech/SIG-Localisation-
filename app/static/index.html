@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SIG Madagascar – Ressources</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<link rel="stylesheet" href="/static/css/app.css">
+</head><body>
+<div id="app">
+<nav id="nav"></nav>
+<div id="main">
+<div class="view on" id="view-dashboard"><div class="dash" id="dash"></div></div>
+<div class="view" id="view-carte">
+<div id="map"></div>
+
+<div class="card" id="panel">
+  <div id="search"><span>🔍</span><input id="q" placeholder="Rechercher une région, un site…" autocomplete="off"></div>
+  <div id="hits"></div>
+  <div class="sec"><h2>Type de ressource</h2><div class="types" id="types"></div></div>
+  <div class="sec"><h2>Ressources</h2><div class="res" id="res"></div></div>
+  <div class="sec"><h2>Affichage</h2><label class="opt"><input type="checkbox" id="showReg" checked> Noms des régions</label></div>
+  <div class="note">Les ressources et les régions affichées proviennent de la base SIG.</div>
+</div>
+
+<div class="card" id="layers"><button class="on" data-l="plan">Plan</button><button data-l="sat">Satellite</button></div>
+<div class="card" id="detail"></div>
+</div>
+<div class="view" id="view-soon"><div class="soonbox" id="soon"></div></div>
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="/static/js/carte.js"></script>
+<script src="/static/js/dashboard.js"></script>
+<script src="/static/js/app.js"></script>
+</body></html>

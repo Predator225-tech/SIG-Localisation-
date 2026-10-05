@@ -1,0 +1,2 @@
+okay je veux maintenant que tu donnes un prompte à  l agent IA codex pour qu il fasses de à A Z le mot de passe postgres est spring.datasource.username=postgres
+[identifiant configuré dans .env] je veux aussi qu ill ajoute un readme.md pour ceci 
